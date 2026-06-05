@@ -25,6 +25,7 @@ textarea {
 
 button {
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .shell {
@@ -110,7 +111,17 @@ h2 {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
+}
+
+.authPanel {
+  align-content: start;
+}
+
+.authIntro {
+  margin: 0 0 18px;
+  color: #667085;
+  line-height: 1.45;
 }
 
 .segmented {
@@ -148,6 +159,7 @@ h2 {
   gap: 14px;
 }
 
+.field,
 label {
   display: grid;
   gap: 7px;
@@ -156,14 +168,20 @@ label {
   font-weight: 700;
 }
 
+.authForm {
+  gap: 16px;
+}
+
 input,
 textarea {
   width: 100%;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
+  min-height: 48px;
   padding: 12px 13px;
   background: #fff;
   color: #172033;
+  font-size: 16px;
   outline: none;
 }
 
@@ -178,6 +196,48 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.16);
 }
 
+.passwordControl {
+  position: relative;
+}
+
+.passwordControl input {
+  padding-right: 48px;
+}
+
+.fieldIconButton {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #475467;
+}
+
+.fieldIconButton:focus-visible,
+.iconButton:focus-visible,
+.segmented button:focus-visible,
+.primary:focus-visible {
+  outline: 3px solid rgba(14, 165, 233, 0.28);
+  outline-offset: 2px;
+}
+
+.inlineError {
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 11px 12px;
+  background: #fff1f2;
+  color: #b42318;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
 .primary {
   display: inline-flex;
   align-items: center;
@@ -190,6 +250,10 @@ textarea:focus {
   background: #172033;
   color: #fff;
   font-weight: 800;
+}
+
+.authSubmit {
+  min-height: 50px;
 }
 
 .primary.secondary {
@@ -264,15 +328,51 @@ textarea:focus {
 
 @media (max-width: 760px) {
   .shell {
-    padding: 18px;
+    padding: 14px;
   }
 
   .topbar {
     align-items: flex-start;
     flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
   }
 
   .grid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  h1 {
+    font-size: 34px;
+  }
+
+  .session {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .segmented {
+    margin-bottom: 16px;
+  }
+
+  .segmented button,
+  .primary {
+    min-height: 50px;
+  }
+
+  .primary {
+    width: 100%;
+  }
+
+  .statusRows div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 0;
   }
 }
