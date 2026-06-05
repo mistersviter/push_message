@@ -21,6 +21,8 @@ type PushSubscriptionInfo = {
   createdAt: string;
 };
 
+type NotificationStatus = NotificationPermission | "not-signed-in" | "unsupported";
+
 const tokenKey = "push_message_token";
 const apiBaseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "";
 
@@ -35,7 +37,7 @@ function App() {
   const [message, setMessage] = React.useState("Привет! Это тестовый push.");
   const [title, setTitle] = React.useState("push_message");
   const [status, setStatus] = React.useState("Готов к настройке.");
-  const [permission, setPermission] = React.useState<NotificationPermission | "not-signed-in">("not-signed-in");
+  const [permission, setPermission] = React.useState<NotificationStatus>("not-signed-in");
   const [subscriptionEndpoints, setSubscriptionEndpoints] = React.useState<string[]>([]);
   const [isBusy, setIsBusy] = React.useState(false);
 
@@ -49,12 +51,16 @@ function App() {
     resetPushState();
 
     api<{ user: User }>("/api/me", { token })
-      .then(async (data) => {
+      .then((data) => {
         if (!isCurrent) return;
 
         setUser(data.user);
-        setPermission(Notification.permission);
-        await loadUserSubscriptions(token, isCurrent);
+        setPermission(getNotificationPermission());
+        loadUserSubscriptions(token, isCurrent).catch((error) => {
+          if (isCurrent) {
+            setStatus(getErrorMessage(error));
+          }
+        });
       })
       .catch(() => {
         if (!isCurrent) return;
@@ -96,7 +102,11 @@ function App() {
       localStorage.setItem(tokenKey, data.token);
       setUser(data.user);
       resetPushState();
+      setPermission(getNotificationPermission());
       setToken(data.token);
+      loadUserSubscriptions(data.token, true).catch((error) => {
+        setStatus(getErrorMessage(error));
+      });
       setStatus(mode === "register" ? "Пользователь создан." : "Вы вошли.");
     } catch (error) {
       setAuthError(getErrorMessage(error));
@@ -108,6 +118,12 @@ function App() {
   async function subscribe() {
     if (!token) {
       setStatus("Сначала войдите в аккаунт.");
+      return;
+    }
+
+    if (!supportsNotifications()) {
+      setPermission("unsupported");
+      setStatus("Этот браузер не поддерживает Notification API.");
       return;
     }
 
@@ -395,6 +411,14 @@ function buildApiUrl(path: string) {
   }
 
   return `${apiBaseUrl}${path}`;
+}
+
+function supportsNotifications() {
+  return "Notification" in window && typeof Notification.requestPermission === "function";
+}
+
+function getNotificationPermission(): NotificationStatus {
+  return "Notification" in window ? Notification.permission : "unsupported";
 }
 
 function urlBase64ToUint8Array(base64String: string) {
