@@ -3,7 +3,7 @@ services:
     name: push-message-api
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build --workspace backend
+    buildCommand: npm install --include=dev && npm run build --workspace backend
     startCommand: npm run start --workspace backend
     envVars:
       - key: NODE_ENV
@@ -22,7 +22,7 @@ services:
   - type: web
     name: push-message-web
     runtime: static
-    buildCommand: npm install && npm run build --workspace frontend
+    buildCommand: npm install --include=dev && npm run build --workspace frontend
     staticPublishPath: frontend/dist
     envVars:
       - key: VITE_API_URL
