@@ -19,6 +19,38 @@ Open `http://localhost:5173`, register or sign in, allow notifications, subscrib
 
 Browser push subscriptions require a secure context. `localhost` works for development; production needs HTTPS.
 
+## API
+
+Base URL in development: `http://localhost:4000`. Protected routes require `Authorization: Bearer <token>`.
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/api/health` | No | Checks that the API is running and reports whether VAPID keys are configured. |
+| `GET` | `/api/push/public-key` | No | Returns the public VAPID key used by the browser to create a push subscription. |
+| `POST` | `/api/auth/register` | No | Creates a user from `{ "email": "...", "password": "..." }` and returns `{ user, token }`. |
+| `POST` | `/api/auth/login` | No | Authenticates an existing user from `{ "email": "...", "password": "..." }` and returns `{ user, token }`. |
+| `GET` | `/api/me` | Yes | Restores the current user from the Bearer token. |
+| `GET` | `/api/push/subscriptions` | Yes | Lists saved subscription endpoints for the current user. |
+| `POST` | `/api/push/subscribe` | Yes | Saves `{ "subscription": PushSubscription }` for the current user and returns the endpoint. |
+| `POST` | `/api/push/send` | Yes | Sends `{ "title": "...", "body": "..." }` to all saved subscriptions for the current user. |
+
+### Example auth request
+
+```bash
+curl -X POST http://localhost:4000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"demo@example.com","password":"password"}'
+```
+
+### Example push send request
+
+```bash
+curl -X POST http://localhost:4000/api/push/send \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"title":"push_message","body":"Hello from the API"}'
+```
+
 ## Render deploy
 
 The repo includes `render.yaml` for a free Render Blueprint with two services:

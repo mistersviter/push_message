@@ -15,10 +15,12 @@ const app = express();
 app.use(cors({ origin: config.clientOrigin, credentials: true }));
 app.use(express.json({ limit: "256kb" }));
 
+// Reports whether the API is alive and whether VAPID keys are available for Web Push.
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, vapidConfigured: hasVapidKeys() });
 });
 
+// Returns the public VAPID key that browsers need to create a PushSubscription.
 app.get("/api/push/public-key", (_req, res) => {
   if (!hasVapidKeys()) {
     res.status(503).json({ message: "VAPID keys are not configured" });
@@ -28,6 +30,7 @@ app.get("/api/push/public-key", (_req, res) => {
   res.json({ publicKey: config.vapidPublicKey });
 });
 
+// Creates a demo user and returns an auth token for immediate sign-in.
 app.post("/api/auth/register", async (req, res) => {
   const { email, password } = parseCredentials(req.body);
   if (!email || !password) {
@@ -53,6 +56,7 @@ app.post("/api/auth/register", async (req, res) => {
   res.status(201).json(toAuthResponse(user.id, user.email));
 });
 
+// Authenticates an existing user with email/password and returns a fresh auth token.
 app.post("/api/auth/login", async (req, res) => {
   const { email, password } = parseCredentials(req.body);
   const user = email ? await store.findUserByEmail(email) : null;
@@ -65,10 +69,12 @@ app.post("/api/auth/login", async (req, res) => {
   res.json(toAuthResponse(user.id, user.email));
 });
 
+// Returns the current user from the Bearer token, used by the frontend to restore a session.
 app.get("/api/me", requireAuth, (req: AuthedRequest, res) => {
   res.json({ user: req.user });
 });
 
+// Lists saved push endpoints for the authenticated user without exposing encryption keys.
 app.get("/api/push/subscriptions", requireAuth, async (req: AuthedRequest, res) => {
   const subscriptions = await store.getSubscriptionsForUser(req.user!.id);
   res.json({
@@ -80,6 +86,7 @@ app.get("/api/push/subscriptions", requireAuth, async (req: AuthedRequest, res) 
   });
 });
 
+// Saves the browser PushSubscription for the authenticated user.
 app.post("/api/push/subscribe", requireAuth, async (req: AuthedRequest, res) => {
   const subscription = req.body?.subscription as PushSubscription | undefined;
   if (!subscription?.endpoint || !subscription.keys?.auth || !subscription.keys?.p256dh) {
@@ -98,6 +105,7 @@ app.post("/api/push/subscribe", requireAuth, async (req: AuthedRequest, res) => 
   res.status(201).json({ message: "Subscription saved", endpoint: subscription.endpoint });
 });
 
+// Sends a Web Push message to every saved subscription that belongs to the authenticated user.
 app.post("/api/push/send", requireAuth, async (req: AuthedRequest, res) => {
   if (!hasVapidKeys()) {
     res.status(503).json({ message: "VAPID keys are not configured" });
@@ -138,6 +146,7 @@ app.post("/api/push/send", requireAuth, async (req: AuthedRequest, res) => {
   });
 });
 
+// Keeps unknown API routes explicit instead of falling through silently.
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.method} ${req.path} not found` });
 });
@@ -146,6 +155,7 @@ app.listen(config.port, () => {
   console.log(`API listening on http://localhost:${config.port}`);
 });
 
+// Normalizes and validates auth form input before it reaches the user store.
 function parseCredentials(body: unknown) {
   const data = body as Record<string, unknown>;
   const email = typeof data?.email === "string" ? data.email.trim().toLowerCase() : "";
@@ -158,6 +168,7 @@ function parseCredentials(body: unknown) {
   return { email, password };
 }
 
+// Shapes auth responses consistently for both register and login.
 function toAuthResponse(id: string, email: string) {
   return {
     user: { id, email },
@@ -165,6 +176,7 @@ function toAuthResponse(id: string, email: string) {
   };
 }
 
+// Keeps notification title/body small and non-empty for push payloads.
 function sanitizeText(value: unknown, fallback: string) {
   return typeof value === "string" && value.trim() ? value.trim().slice(0, 180) : fallback;
 }
