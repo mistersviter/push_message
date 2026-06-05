@@ -20,6 +20,7 @@ type PushSubscriptionInfo = {
 };
 
 const tokenKey = "push_message_token";
+const apiBaseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "";
 
 function App() {
   const [mode, setMode] = React.useState<"login" | "register">("register");
@@ -301,7 +302,7 @@ async function api<T = unknown>(
   url: string,
   options: { method?: string; token?: string; body?: unknown } = {}
 ): Promise<T> {
-  const response = await fetch(url, {
+  const response = await fetch(buildApiUrl(url), {
     method: options.method ?? "GET",
     headers: {
       ...(options.body ? { "Content-Type": "application/json" } : {}),
@@ -316,6 +317,14 @@ async function api<T = unknown>(
   }
 
   return data;
+}
+
+function buildApiUrl(path: string) {
+  if (/^https?:\/\//.test(path)) {
+    return path;
+  }
+
+  return `${apiBaseUrl}${path}`;
 }
 
 function urlBase64ToUint8Array(base64String: string) {
