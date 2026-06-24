@@ -12,11 +12,13 @@ services:
         sync: false
       - key: TOKEN_SECRET
         generateValue: true
-      - key: VAPID_SUBJECT
-        value: mailto:admin@example.com
-      - key: VAPID_PUBLIC_KEY
+      - key: YANDEX_CLOUD_NOTIFICATION_CHANNEL_ARN
         sync: false
-      - key: VAPID_PRIVATE_KEY
+      - key: YANDEX_CLOUD_STATIC_KEY_ID
+        sync: false
+      - key: YANDEX_CLOUD_STATIC_KEY_SECRET
+        sync: false
+      - key: YANDEX_CLOUD_VAPID_PUBLIC_KEY
         sync: false
 
   - type: web

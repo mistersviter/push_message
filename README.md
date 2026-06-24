@@ -9,7 +9,7 @@ npm install
 npm run vapid:generate
 ```
 
-Create `backend/.env` from `backend/.env.example` and paste the VAPID keys.
+Create `backend/.env` from `backend/.env.example` and set the Yandex Cloud Notification Service channel ARN, static access-key pair, and public VAPID key. Never commit the static-key secret.
 
 ```bash
 npm run dev
@@ -25,8 +25,8 @@ Base URL in development: `http://localhost:4000`. Protected routes require `Auth
 
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
-| `GET` | `/api/health` | No | Checks that the API is running and reports whether VAPID keys are configured. |
-| `GET` | `/api/push/public-key` | No | Returns the public VAPID key used by the browser to create a push subscription. |
+| `GET` | `/api/health` | No | Checks that the API is running and reports whether Yandex Cloud Notifications is configured. |
+| `GET` | `/api/push/public-key` | No | Returns the Yandex Cloud channel public VAPID key used by the browser to create a push subscription. |
 | `POST` | `/api/auth/register` | No | Creates a user from `{ "email": "...", "password": "..." }` and returns `{ user, token }`. |
 | `POST` | `/api/auth/login` | No | Authenticates an existing user from `{ "email": "...", "password": "..." }` and returns `{ user, token }`. |
 | `GET` | `/api/me` | Yes | Restores the current user from the Bearer token. |
@@ -63,13 +63,15 @@ On Render, create a new Blueprint from this GitHub repo and fill the prompted en
 Backend (`push-message-api`):
 
 - `CLIENT_ORIGIN`: the final frontend URL, for example `https://push-message-web.onrender.com`.
-- `VAPID_PUBLIC_KEY`: generated with `npm run vapid:generate`.
-- `VAPID_PRIVATE_KEY`: generated with `npm run vapid:generate`.
+- `YANDEX_CLOUD_NOTIFICATION_CHANNEL_ARN`: ARN of the Yandex Cloud `WEB` channel.
+- `YANDEX_CLOUD_STATIC_KEY_ID` and `YANDEX_CLOUD_STATIC_KEY_SECRET`: static access-key pair with Notification Service permissions.
+- `YANDEX_CLOUD_VAPID_PUBLIC_KEY`: public VAPID key configured in that Yandex Cloud channel.
+
 
 Frontend (`push-message-web`):
 
 - `VITE_API_URL`: the final backend URL, for example `https://push-message-api.onrender.com`.
 
-Render generates `TOKEN_SECRET` automatically from the Blueprint. Keep `VAPID_SUBJECT` as `mailto:admin@example.com` or replace it with your email.
+Render generates `TOKEN_SECRET` automatically from the Blueprint.
 
 This demo intentionally uses `backend/data/db.json`. Render free services have an ephemeral filesystem, so users and subscriptions can disappear after redeploys, restarts, or spin-downs.

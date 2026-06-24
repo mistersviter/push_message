@@ -12,6 +12,7 @@ export type StoredSubscription = {
   id: string;
   userId: string;
   endpoint: string;
+  yandexEndpointArn?: string;
   subscription: PushSubscription;
   createdAt: string;
 };

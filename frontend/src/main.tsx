@@ -147,12 +147,16 @@ function App() {
         navigator.serviceWorker.register("/sw.js")
       ]);
 
+      const applicationServerKey = urlBase64ToUint8Array(publicKey);
       const existing = await registration.pushManager.getSubscription();
+      if (existing && !sameApplicationServerKey(existing, applicationServerKey)) {
+        await existing.unsubscribe();
+      }
       const subscription =
-        existing ??
+        (await registration.pushManager.getSubscription()) ??
         (await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(publicKey)
+          applicationServerKey
         }));
 
       const savedSubscription = await api<{ endpoint: string }>("/api/push/subscribe", {
@@ -426,6 +430,13 @@ function urlBase64ToUint8Array(base64String: string) {
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
   const rawData = window.atob(base64);
   return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+}
+
+function sameApplicationServerKey(subscription: PushSubscription, expected: Uint8Array) {
+  const current = subscription.options.applicationServerKey;
+  if (!current) return false;
+  const bytes = new Uint8Array(current);
+  return bytes.length === expected.length && bytes.every((byte, index) => byte === expected[index]);
 }
 
 function getErrorMessage(error: unknown) {
